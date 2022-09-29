@@ -11,6 +11,7 @@ from datetime import datetime
 from scipy.spatial.transform import Rotation as R
 from object_reconstruction.utils.misc_utils import render_scene
 from copy import deepcopy
+from object_reconstruction.cri_robot_arm import CRIRobotArm
 
 def robot_touch_vertical(robot, sample, max_height_wrld=0.2):
     """Given x-y coordinates in the worldframe, the robot moves to a high position and then 
@@ -129,7 +130,7 @@ def robot_touch_spherical(robot, robot_sphere_wrld, initial_pos, angles, max_hei
     robot.stop_at_touch = False
     return robot
 
-def spherical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index, num_points=2000, scale=1, nx=5, ny=5, mesh=None, obj=False):
+def spherical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index, robot_config, num_points=2000, scale=1, mesh=None, obj=False):
     """
     This method computes the max and min coordinates and samples randomly within these boundaries.
     If the mesh is loaded as .urdf, we use pybullet.getMesh(). If it is a .obj, we pass a Trimesh object and extracts the vertices.
@@ -158,10 +159,6 @@ def spherical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index,
     # ray: sqrt( (x1 - xc)**2 + (y1 - yc)**2)
     ray_hemisphere = 1.5 * np.sqrt((max_coords[0] - initial_pos[0])**2 + (max_coords[1] - initial_pos[1])**2 + (max_coords[2] - initial_pos[2])**2)
     
-    # Set pointcloud grid
-    robot.nx = nx
-    robot.ny = ny
-
     # Initialize lists
     pos_wrld_list = np.array([], dtype=np.float32).reshape(0, 3)  # TCP pos (worldframe)
     pos_wrk_list = np.array([], dtype=np.float32).reshape(0, 3)   # TCP pos (worldframe)
@@ -176,6 +173,26 @@ def spherical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index,
     debug_rotation = dict()
     debug_rotation[obj_index] = dict()
     for iteration in range(args.num_samples):
+        pb.removeBody(robot.robot_id)
+        robot = CRIRobotArm(
+            pb,
+            workframe_pos = robot_config['workframe_pos'],
+            workframe_rpy = robot_config['workframe_rpy'],
+            image_size = [256, 256],
+            arm_type = "ur5",
+            t_s_type = robot_config['t_s_type'],
+            t_s_core = robot_config['t_s_core'],
+            t_s_name = robot_config['t_s_name'],
+            t_s_dynamics = robot_config['t_s_dynamics'],
+            show_gui = args.show_gui,
+            show_tactile = args.show_tactile
+        )
+        
+        # Set pointcloud grid
+        robot.nx = robot_config['nx']
+        robot.ny = robot_config['ny']
+        
+        #robot.arm.worldframe_to_workframe([0.65, 0.0, 1.2], [0, 0, 0])[0]
         robot.results_at_touch_wrld = None
         hemisphere_random_pos, angles = sample_hemisphere(ray_hemisphere)
         #_debug_plot_sphere(ray_hemisphere, initial_pos)
@@ -239,7 +256,7 @@ def spherical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index,
 
         # intermediate saving
         save_touch_charts(mesh_list, tactile_imgs, pointcloud_list, obj_index, rot_M_wrld_list, pos_wrld_list, pos_wrk_list, initial_pos)
-
+  
     return mesh_list, tactile_imgs, pointcloud_list, obj_index, rot_M_wrld_list, pos_wrld_list, pos_wrk_list
 
 def vertical_sampling(robot, obj_id, initial_pos, initial_orn, args, obj_index, num_points=2000, scale=1, nx=5, ny=5, mesh=None, obj=False):

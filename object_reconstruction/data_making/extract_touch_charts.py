@@ -57,15 +57,23 @@ def main(args):
         add_assets_path("shared_assets/environment_objects/plane/plane.urdf")
     )
 
-    # set up tactip
-    t_s_type = 'standard'
-    t_s_name='tactip'
-    t_s_core = 'no_core'
-    t_s_dynamics = {}
-
-    # setup workspace
-    workframe_pos = [0.65, 0.0, 0.35]  # relative to world frame
-    workframe_rpy = [-np.pi, 0.0, np.pi / 2]  # relative to world frame
+    # robot configuration
+    robot_config = {
+        # workframe
+        'workframe_pos': [0.65, 0.0, 0.35], # relative to world frame
+        'workframe_rpy': [-np.pi, 0.0, np.pi / 2], # relative to world frame
+        'image_size': [256, 256],
+        'arm_type': 'ur5',
+        # sensor
+        't_s_type': 'standard',
+        't_s_core': 'no_core',
+        't_s_name': 'tactip',
+        't_s_dynamics': {},
+        'show_gui': args.show_gui,
+        'show_tactile': args.show_tactile,
+        'nx': 40,
+        'ny': 40
+    }
     
     list_objects = [filepath.split('/')[-1] for filepath in glob(os.path.join(os.path.dirname(objects.__file__), '*'))]
     list_objects.remove('__init__.py')
@@ -76,18 +84,17 @@ def main(args):
         # Load robot
         robot = CRIRobotArm(
             pb,
-            workframe_pos=workframe_pos,
-            workframe_rpy=workframe_rpy,
-            image_size=[256, 256],
-            arm_type="ur5",
-            t_s_type=t_s_type,
-            t_s_core=t_s_core,
-            t_s_name=t_s_name,
-            t_s_dynamics=t_s_dynamics,
-            show_gui=args.show_gui,
-            show_tactile=args.show_tactile
+            workframe_pos = robot_config['workframe_pos'],
+            workframe_rpy = robot_config['workframe_rpy'],
+            image_size = [256, 256],
+            arm_type = "ur5",
+            t_s_type = robot_config['t_s_type'],
+            t_s_core = robot_config['t_s_core'],
+            t_s_name = robot_config['t_s_name'],
+            t_s_dynamics = robot_config['t_s_dynamics'],
+            show_gui = args.show_gui,
+            show_tactile = args.show_tactile
         )
-        print(f'Robot ID: {robot.robot_id}')
 
         # Load object
         stimulus_orn = p.getQuaternionFromEuler([0, 0, np.pi / 2])
@@ -108,8 +115,6 @@ def main(args):
 
         robot.arm.worldframe_to_workframe([0.65, 0.0, 1.2], [0, 0, 0])[0]
 
-        nx = 40
-        ny = 40
         mesh_list, tactile_imgs, pointcloud_list, obj_index, rot_M_wrld_list, pos_wrld_list, pos_wrk_list  = spherical_sampling(
             robot=robot,
             obj_id=stimulus_id, 
@@ -118,8 +123,7 @@ def main(args):
             scale=scale_obj,
             args=args,
             obj_index=obj_index,
-            nx=nx,
-            ny=ny
+            robot_config=robot_config,
         )
 
         save_touch_charts(mesh_list, tactile_imgs, pointcloud_list, obj_index, rot_M_wrld_list, pos_wrld_list, pos_wrk_list, stimulus_pos)
@@ -131,34 +135,34 @@ def main(args):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--show_gui", type=bool, default=True, help="Show PyBullet GUI"
+        "--show_gui", default=False, action='store_true', help="Show PyBullet GUI"
     )
     parser.add_argument(
-        "--show_tactile", type=bool, default=True, help="Show tactile image"
+        "--show_tactile", default=False, action='store_true', help="Show tactile image"
     )
     parser.add_argument(
-        "--debug_show_full_mesh", type=bool, default=False, help="Show mesh obtained from first raycasting"
+        "--debug_show_full_mesh", default=False, action='store_true', help="Show mesh obtained from first raycasting"
     )
     parser.add_argument(
-        "--debug_show_mesh_wrk", type=bool, default=False, help="Show mesh obtained from applying the pivot ball technique on 25 vertices wrt workframe"
+        "--debug_show_mesh_wrk", default=False, action='store_true', help="Show mesh obtained from applying the pivot ball technique on 25 vertices wrt workframe"
     )
     parser.add_argument(
-        "--debug_show_mesh_wrld", type=bool, default=False, help="Show mesh obtained from applying the pivot ball technique on 25 vertices wrt worldframe"
+        "--debug_show_mesh_wrld", default=False, action='store_true', help="Show mesh obtained from applying the pivot ball technique on 25 vertices wrt worldframe"
     )
     parser.add_argument(
-        "--debug_contact_points", type=bool, default=False, help="Show contact points on Plotly"
+        "--debug_contact_points", default=False, action='store_true', help="Show contact points on Plotly"
     )
     parser.add_argument(
         "--num_samples", type=int, default=50, help="Number of samplings on the objects"
     )
     parser.add_argument(
-        "--debug_rotation", type=bool, default=False, help="Store data to see if rotation works"
+        "--debug_rotation", default=False, action='store_true', help="Store data to see if rotation works"
     )
     parser.add_argument(
-        "--render_scene", type=bool, default=False, help="Render scene at touch"
+        "--render_scene", default=False, action='store_true', help="Render scene at touch"
     )
     parser.add_argument(
-        "--debug_pointcloud_to_mesh", type=bool, default=False, help="Store pointcloud and generated touch chart"
+        "--debug_pointcloud_to_mesh", default=False, action='store_true', help="Store pointcloud and generated touch chart"
     )
     args = parser.parse_args()
 
