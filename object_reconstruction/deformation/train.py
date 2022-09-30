@@ -158,7 +158,7 @@ class Trainer():
             loss = utils.chamfer_distance(
                 verts, batch[1][0], gt_obj_pointcloud, num=self.args.number_points
             )
-            loss = self.args.loss_coeff * self.args.lr_multiplier * loss.mean()
+            loss = self.args.loss_coeff * loss.mean()
 
             # log
             total_loss += loss.item()
