@@ -208,22 +208,22 @@ if __name__ == "__main__":
         help="The shared size of features in the GCN.",
     )
     parser.add_argument(
-        "--lr", type=float, default=0.00015, help="Initial learning rate."
+        "--lr", type=float, default=0.001, help="Initial learning rate."
     )
     parser.add_argument(
         "--number_points",
         type=int,
-        default=30000,
+        default=20000,
         help="number of points sampled for the chamfer distance.",
     )
     parser.add_argument(
         "--loss_coeff", type=float, default=1000.0, help="Coefficient for loss term."
     )
     parser.add_argument(
-        '--visualise_deformation_train', type=bool, default=False, help="Plot the deformed spherical mesh over training epochs."
+        '--visualise_deformation_train', default=False, action='store_true', help="Plot the deformed spherical mesh over training epochs."
     )
     parser.add_argument(
-        '--log_info_train', type=bool, default=True, help="Store info about training."
+        '--log_info_train', default=True, action='store_false', help="Store info about training."
     )
     parser.add_argument(
         '--input_size', type=int, default=50, help="Store info about training."
@@ -232,7 +232,7 @@ if __name__ == "__main__":
         '--num_layers_embedding', type=int, default=10, help="Store info about training."
     )
     parser.add_argument(
-        '--pretrained', type=bool, default=False, help="Store info about training."
+        '--pretrained', default=False, action='store_true', help="Store info about training."
     )  
     parser.add_argument(
         '--initial_sphere_dimension', type=float, default=0.5, help="Multiplier for the initial sphere dimension. Number smaller than 1 result in a smaller initial sphere."
