@@ -22,7 +22,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 import json
 from datetime import datetime
-
+from copy import deepcopy
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -61,6 +61,9 @@ class Trainer():
             self.debug_visualisation_path = os.path.join(self.log_train_dir, f"debug_visualisation_{self.timestamp_run}.npy")
 
         self.model = model.Deformation(self.touch_chart_dir, self.args).to(device)
+        params = list(self.model.parameters())
+        self.optimizer = optim.Adam(params, lr=self.args.lr, weight_decay=0)
+        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=1, gamma=self.args.lr_multiplier)
 
         if self.args.pretrained:
             self.model.load_state_dict(torch.load(self.pretrain_path))
@@ -73,11 +76,21 @@ class Trainer():
         self.results['val'] = []
 
         # train and validate
+        best_val = 1000000
+        patience = 0
         for epoch in range(0, self.args.epochs):
+            # Learning rate scheduling
+            if patience == 20:   # every 20 epochs, if val does not improve, reduce learning rate
+                patience = 0
+                self.scheduler.step()
             self.epoch = epoch
             self.train(train_loader)
             with torch.no_grad():
-                self.validate(valid_loaders)
+                val_loss = self.validate(valid_loaders)
+                if val_loss < best_val:
+                    patience = 0
+                    best_val = deepcopy(val_loss)       
+                patience+=1       
             # self.check_values()
 
     def get_loaders(self):
@@ -103,8 +116,8 @@ class Trainer():
         total_loss = 0
         iterations = 0
 
-        params = list(self.model.parameters())
-        self.optimizer = optim.Adam(params, lr=self.args.lr, weight_decay=0)
+        #params = list(self.model.parameters())
+        #self.optimizer = optim.Adam(params, lr=self.args.lr, weight_decay=0)
         self.model.train()
 
         for k, batch in enumerate(tqdm(data, smoothing=0)):
@@ -145,7 +158,7 @@ class Trainer():
             loss = utils.chamfer_distance(
                 verts, batch[1][0], gt_obj_pointcloud, num=self.args.number_points
             )
-            loss = self.args.loss_coeff * loss.mean()
+            loss = self.args.loss_coeff * self.args.lr_multiplier * loss.mean()
 
             # log
             total_loss += loss.item()
@@ -164,6 +177,8 @@ class Trainer():
         if self.args.log_info_train:
             with open(self.log_path, mode='a') as log:
                 log.write(f'Epoch {self.epoch}, Val loss: {total_loss / iterations} \n')
+        
+        return total_loss / iterations
 
 
 if __name__ == "__main__":
@@ -202,7 +217,7 @@ if __name__ == "__main__":
         help="number of points sampled for the chamfer distance.",
     )
     parser.add_argument(
-        "--loss_coeff", type=float, default=5000.0, help="Coefficient for loss term."
+        "--loss_coeff", type=float, default=1000.0, help="Coefficient for loss term."
     )
     parser.add_argument(
         '--visualise_deformation_train', type=bool, default=False, help="Plot the deformed spherical mesh over training epochs."
@@ -220,19 +235,12 @@ if __name__ == "__main__":
         '--pretrained', type=bool, default=False, help="Store info about training."
     )  
     parser.add_argument(
-        '--initial_sphere_dimension', type=float, default=1.0, help="Multiplier for the initial sphere dimension. Number smaller than 1 result in a smaller initial sphere."
+        '--initial_sphere_dimension', type=float, default=0.5, help="Multiplier for the initial sphere dimension. Number smaller than 1 result in a smaller initial sphere."
+    )  
+    parser.add_argument(
+        '--lr_multiplier', type=float, default=1.0, help="Multiplier for the learning rate scheduling"
     )  
     args = parser.parse_args()
-
-    # custom args
-    args.hidden_GCN_size = 60
-    args.num_GCN_layers = 15
-    args.epochs = 300
-    args.input_size = 10
-    args.visualise_deformation_train = True
-    args.num_layers_embedding = 10
-    args.loss_coeff = 500
-    args.initial_sphere_dimension = 0.5
 
     trainer = Trainer(args)
     trainer()
