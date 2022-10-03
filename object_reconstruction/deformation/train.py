@@ -83,7 +83,7 @@ class Trainer():
                 val_loss = self.validate(valid_loaders)
                 if not self.args.no_lr_scheduler:
                     self.scheduler.step(val_loss)
-                    for param_group in self.optim.param_groups:
+                    for param_group in self.optimizer.param_groups:
                         print(f"Learning rate: {param_group['lr']}")
             # self.check_values()
 
