@@ -62,8 +62,9 @@ class Trainer():
 
         self.model = model.Deformation(self.touch_chart_dir, self.args).to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=0)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=self.args.lr_multiplier, 
-                patience=self.args.patience, threshold=0.1, threshold_mode='abs')
+        if not self.args.no_lr_scheduler:
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=self.args.lr_multiplier, 
+                    patience=self.args.patience, threshold=0.1, threshold_mode='abs')
 
         if self.args.pretrained:
             self.model.load_state_dict(torch.load(self.pretrain_path))
@@ -80,9 +81,10 @@ class Trainer():
             self.train(train_loader)
             with torch.no_grad():
                 val_loss = self.validate(valid_loaders)
-                self.scheduler.step(val_loss)
-                for param_group in self.optim.param_groups:
-                    print(f"Learning rate: {param_group['lr']}")
+                if not self.args.no_lr_scheduler:
+                    self.scheduler.step(val_loss)
+                    for param_group in self.optim.param_groups:
+                        print(f"Learning rate: {param_group['lr']}")
             # self.check_values()
 
     def get_loaders(self):
@@ -230,6 +232,9 @@ if __name__ == "__main__":
     )  
     parser.add_argument(
         '--patience', type=int, default=15, help="Patience for the learning rate scheduling"
+    )  
+    parser.add_argument(
+        '--no_lr_scheduler', default=False, action='store_true', help="Turn off lr_scheduler"
     )  
     args = parser.parse_args()
 
