@@ -63,7 +63,7 @@ class Trainer():
         self.model = model.Deformation(self.touch_chart_dir, self.args).to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=0)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=self.args.lr_multiplier, 
-                patience=self.args.patience, threshold=0.01, threshold_mode='abs')
+                patience=self.args.patience, threshold=0.1, threshold_mode='abs')
 
         if self.args.pretrained:
             self.model.load_state_dict(torch.load(self.pretrain_path))
@@ -172,10 +172,10 @@ class Trainer():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--epochs", type=int, default=500, help="Number of epochs to use."
+        "--epochs", type=int, default=1000, help="Number of epochs to use."
     )
     parser.add_argument(
-        "--batch_size", type=int, default=16, help="Batch size"
+        "--batch_size", type=int, default=12, help="Batch size"
     )
     parser.add_argument(
         "--num_GCN_layers",
@@ -196,7 +196,7 @@ if __name__ == "__main__":
         help="The shared size of features in the GCN.",
     )
     parser.add_argument(
-        "--lr", type=float, default=0.001, help="Initial learning rate."
+        "--lr", type=float, default=0.0001, help="Initial learning rate."
     )
     parser.add_argument(
         "--number_points",
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         help="number of points sampled for the chamfer distance.",
     )
     parser.add_argument(
-        "--loss_coeff", type=float, default=1000.0, help="Coefficient for loss term."
+        "--loss_coeff", type=float, default=9000.0, help="Coefficient for loss term."
     )
     parser.add_argument(
         '--visualise_deformation_train', default=False, action='store_true', help="Plot the deformed spherical mesh over training epochs."
