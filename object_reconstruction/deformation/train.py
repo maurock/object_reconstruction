@@ -61,9 +61,9 @@ class Trainer():
             self.debug_visualisation_path = os.path.join(self.log_train_dir, f"debug_visualisation_{self.timestamp_run}.npy")
 
         self.model = model.Deformation(self.touch_chart_dir, self.args).to(device)
-        params = list(self.model.parameters())
-        self.optimizer = optim.Adam(params, lr=self.args.lr, weight_decay=0)
-        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=1, gamma=self.args.lr_multiplier)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=0)
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=self.args.lr_multiplier, 
+                patience=self.args.patience, threshold=0.01, threshold_mode='abs')
 
         if self.args.pretrained:
             self.model.load_state_dict(torch.load(self.pretrain_path))
@@ -75,22 +75,14 @@ class Trainer():
         self.results['train'] = []
         self.results['val'] = []
 
-        # train and validate
-        best_val = 1000000
-        patience = 0
         for epoch in range(0, self.args.epochs):
-            # Learning rate scheduling
-            if patience == 20:   # every 20 epochs, if val does not improve, reduce learning rate
-                patience = 0
-                self.scheduler.step()
             self.epoch = epoch
             self.train(train_loader)
             with torch.no_grad():
                 val_loss = self.validate(valid_loaders)
-                if val_loss < best_val:
-                    patience = 0
-                    best_val = deepcopy(val_loss)       
-                patience+=1       
+                self.scheduler.step(val_loss)
+                for param_group in self.optim.param_groups:
+                    print(f"Learning rate: {param_group['lr']}")
             # self.check_values()
 
     def get_loaders(self):
@@ -115,11 +107,7 @@ class Trainer():
     def train(self, data):
         total_loss = 0
         iterations = 0
-
-        #params = list(self.model.parameters())
-        #self.optimizer = optim.Adam(params, lr=self.args.lr, weight_decay=0)
         self.model.train()
-
         for k, batch in enumerate(tqdm(data, smoothing=0)):
             self.optimizer.zero_grad()
             # initialize data
@@ -238,7 +226,10 @@ if __name__ == "__main__":
         '--initial_sphere_dimension', type=float, default=0.5, help="Multiplier for the initial sphere dimension. Number smaller than 1 result in a smaller initial sphere."
     )  
     parser.add_argument(
-        '--lr_multiplier', type=float, default=1.0, help="Multiplier for the learning rate scheduling"
+        '--lr_multiplier', type=float, default=0.9, help="Multiplier for the learning rate scheduling"
+    )  
+    parser.add_argument(
+        '--patience', type=int, default=15, help="Patience for the learning rate scheduling"
     )  
     args = parser.parse_args()
 
