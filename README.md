@@ -41,7 +41,7 @@ bash create_directories.sh
 ```
 In addition, you need to install the `Tactile-Gym` library (branch `active_reconstruction`):
 ```
-pip install -e "git+https://github.com/ac-93/tactile_gym.git@active_reconstruction#egg=tactile_gym"
+pip install "git+https://github.com/ac-93/tactile_gym.git@active_reconstruction#egg=tactile_gym"
 cd src/tactile-gym
 python setup.py install
 ```
@@ -60,6 +60,8 @@ Pytorch3D supports the GPU on Ubuntu
 ```
 FORCE_CUDA=1 conda install pytorch3d -c pytorch3d -c anaconda -c pytorchconda install -c fvcore -c iopath -c conda-forge fvcore iopath
 ```
+This should install PyTorch with CUDA enabled. If it does not, please make sure to install it. 
+
 
 
 
