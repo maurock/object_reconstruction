@@ -84,7 +84,6 @@ class Deformation(nn.Module):
 
         ##### third loop #####
         positional_features = self.positional_encoder(vertices)
-        mask_features = self.mask_encoder(mask)
         vertex_features = positional_features + mask_features
 
         # perfrom the third deformation

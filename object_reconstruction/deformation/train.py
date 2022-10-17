@@ -5,12 +5,7 @@ from tqdm import tqdm
 import argparse
 
 import torch.optim as optim
-from pterotactyl.reconstruction.vision import model
 from pterotactyl.utility import utils
-from pterotactyl.utility import data_loaders
-import pterotactyl.objects as objects
-from pterotactyl import pretrained
-
 import object_reconstruction.data.touch_charts as touch_charts
 import object_reconstruction.data.checkpoints as checkpoints
 from object_reconstruction.utils import misc_utils
@@ -240,3 +235,4 @@ if __name__ == "__main__":
 
     trainer = Trainer(args)
     trainer()
+ 
