@@ -135,7 +135,7 @@ def main(args):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--show_gui", default=True, action='store_true', help="Show PyBullet GUI"
+        "--show_gui", default=False, action='store_true', help="Show PyBullet GUI"
     )
     parser.add_argument(
         "--show_tactile", default=False, action='store_true', help="Show tactile image"
