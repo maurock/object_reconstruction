@@ -135,7 +135,7 @@ def main(args):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--show_gui", default=False, action='store_true', help="Show PyBullet GUI"
+        "--show_gui", default=True, action='store_true', help="Show PyBullet GUI"
     )
     parser.add_argument(
         "--show_tactile", default=False, action='store_true', help="Show tactile image"
@@ -153,7 +153,7 @@ if __name__=='__main__':
         "--debug_contact_points", default=False, action='store_true', help="Show contact points on Plotly"
     )
     parser.add_argument(
-        "--num_samples", type=int, default=50, help="Number of samplings on the objects"
+        "--num_samples", type=int, default=10, help="Number of samplings on the objects"
     )
     parser.add_argument(
         "--debug_rotation", default=False, action='store_true', help="Store data to see if rotation works"

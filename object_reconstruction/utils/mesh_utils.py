@@ -137,7 +137,10 @@ def mesh_to_pointcloud(verts, faces, n_samples):
     pointcloud = pointcloud.astype(np.float32)
     return pointcloud
 
-# loads the initial mesh and returns vertex, and face information as torch tensors (Ed. Smith)
+# implemented from:
+# https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/utility/utils.py
+# MIT License
+# loads the initial mesh and returns vertex, and face information
 def load_mesh_touch(obj):
     obj_info = load_obj(obj)
     verts = obj_info[0]
@@ -307,10 +310,14 @@ def get_mesh_z(obj_index):
     height = (np.amax(z_values) - np.amin(z_values))
     return height/2
 
-    # # worldframe coordinates. These do not take into account the initial obj position.
-    # num_vertices, vertices_wrld = p.getMeshData(obj_id, 0)   
-    # initial_orn = p.getQuaternionFromEuler([np.pi / 2, 0, 0])   # WHY DO I NEED THIS ARBITRARY ORN INSTEAD OF OBJ ORN?
-    # vertices_wrld = rotate_vector_by_quaternion(np.array(vertices_wrld), initial_orn) + initial_pos
+# implemented from:
+# https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/utility/utils.py
+# MIT License
+# returns the chamfer distance between a mesh and a point cloud
+def chamfer_distance(verts, faces, gt_points, num=1000):
+	pred_points= batch_sample(verts, faces, num=num)
+	cd, _ = cuda_cd(pred_points, gt_points, batch_reduction=None)
+	return cd
 
 
 

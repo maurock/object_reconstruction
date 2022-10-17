@@ -58,7 +58,6 @@ def _combine_touch_vision_charts(touch_charts_dict, init_touch_faces, init_visio
     Params:
         - touch_charts_dict: dictionary containing four elements: 'verts', 'faces', 'tactile_imgs', 'pointclouds'
             # - 'verts': shape (n_samples, 75), ground truth vertices for various samples
-            # - 'faces': shape (n_faces, 3), concatenated triangles. The number of faces per sample varies, so it is not possible to store faces per sample. ------ ? NOT SURE
             # - 'tactile_imgs': shape (n_samples, 1, 256, 256)
             # - 'pointclouds': shape (n_samples, 2000, 3), points randomly samples on the touch charts mesh surface.
             - mesh_list = list containing open3d.geometry.TriangleMesh (25 vertices and faces of the local geometry at touch site)

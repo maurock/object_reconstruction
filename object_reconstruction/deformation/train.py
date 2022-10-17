@@ -8,7 +8,7 @@ import torch.optim as optim
 from pterotactyl.utility import utils
 import object_reconstruction.data.touch_charts as touch_charts
 import object_reconstruction.data.checkpoints as checkpoints
-from object_reconstruction.utils import misc_utils
+from object_reconstruction.utils import misc_utils, mesh_utils
 from object_reconstruction.data_making.dataset_deformation import DeformationDataset 
 from torch.utils.data import random_split
 from torch.utils.data import DataLoader
@@ -17,7 +17,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 import json
 from datetime import datetime
-from copy import deepcopy
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -110,7 +109,7 @@ class Trainer():
             # initialize data
             gt_obj_pointcloud = batch[3].to(device)
             verts = self.model(batch)[0]
-            loss = utils.chamfer_distance(
+            loss = mesh_utils.chamfer_distance(
                 verts[:1824], batch[1][0][:2304], gt_obj_pointcloud, num=self.args.number_points
             )
             loss = self.args.loss_coeff * loss.mean()
@@ -140,7 +139,7 @@ class Trainer():
             gt_obj_pointcloud = batch[3].to(device)
             verts = self.model(batch)[0]
 
-            loss = utils.chamfer_distance(
+            loss = mesh_utils.chamfer_distance(
                 verts, batch[1][0], gt_obj_pointcloud, num=self.args.number_points
             )
             loss = self.args.loss_coeff * loss.mean()

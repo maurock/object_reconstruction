@@ -6,6 +6,7 @@ https://arxiv.org/abs/2107.09584
 """
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/touch/model.py
 # CNN block
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, last=False):
@@ -30,6 +31,7 @@ class DoubleConv(nn.Module):
             x = self.activation(x)
         return x
 
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/touch/model.py
 # Model for predicting touch chart shape
 class Encoder(nn.Module):
     def __init__(self):

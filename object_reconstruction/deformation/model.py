@@ -8,9 +8,13 @@ from PIL import Image
 import os
 from object_reconstruction.utils.mesh_utils import *
 from copy import deepcopy
-
+"""
+Models adapted from 'Active 3D Shape Reconstruction from Vision and Touch, Smith et al.'
+https://arxiv.org/abs/2107.09584
+"""
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # basic CNN layer template
 def CNN_layer(f_in, f_out, k, stride=1, simple=False, padding=1):
     layers = []
@@ -22,7 +26,7 @@ def CNN_layer(f_in, f_out, k, stride=1, simple=False, padding=1):
     )
     return nn.Sequential(*layers)
 
-
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # Class for defroming the charts into the traget shape
 class Deformation(nn.Module):
     def __init__(
@@ -93,7 +97,7 @@ class Deformation(nn.Module):
 
         return vertices, mask
 
-
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # Graph convolutional network class for predicting mesh deformation
 class GCN(nn.Module):
     def __init__(self, input_features, args, ignore_touch_matrix=False):
@@ -138,7 +142,7 @@ class GCN(nn.Module):
 
         return features
 
-
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # Graph convolutional network layer
 class GCN_layer(nn.Module):
     def __init__(self, in_features, out_features, cut=0.33, do_cut=True):
@@ -170,7 +174,7 @@ class GCN_layer(nn.Module):
 
         return activation(output)
 
-
+# implemented from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # encode the positional information of vertices using Nerf Embeddings
 class Positional_Encoder(nn.Module):
     def __init__(self, input_size, num_layers_embedding):
@@ -207,7 +211,7 @@ class Positional_Encoder(nn.Module):
         embedding = self.model(positions).view(shape[0], shape[1], -1)
         return embedding
 
-
+# adapted from https://github.com/facebookresearch/Active-3D-Vision-and-Touch/blob/main/pterotactyl/reconstruction/vision/model.py, MIT License
 # make embedding token of the mask information for each vertex
 class Mask_Encoder(nn.Module):
     def __init__(self, input_size):
