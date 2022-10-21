@@ -129,3 +129,6 @@ python deformation/train.py
 - Touch charts data collection on macOS does not work on PyBullet DIRECT mode, but only on GUI mode. Therefore, please run `python data_making/extract_touch_charts.py --show_gui`. The issue consists in the wrong baseline image for the tactile image. It will be fixed soon.
 - When collecting touch charts on macOS, the simulator sometimes stops rendering the robot and/or the object. For this reason, it is recommended to collect data on Linux. 
 
+# License
+Licensed under [MIT License](https://github.com/maurock/object_reconstruction/blob/main/LICENSE.md).
+
